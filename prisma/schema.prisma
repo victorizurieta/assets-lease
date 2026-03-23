@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id            String        @id @default(cuid())
+  nombre        String
+  cedulaRuc     String        @unique
+  telefono      String?
+  email         String?
+  direccion     String?
+  tipoPlan      String
+  estado        String        @default("activo")
+  pais          String?
+  observaciones String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  unidades      Unidad[]
+  renovaciones  Renovacion[]
+}
+
+model EquipoGPS {
+  id            String      @id @default(cuid())
+  imei          String      @unique
+  marca         String?
+  modelo        String?
+  tipo          String?
+  tecnologia    String?
+  estado        String      @default("disponible")
+  observaciones String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  unidad        Unidad?     @relation(fields: [unidadId], references: [id])
+  unidadId      String?     @unique
+}
+
+model SIMCard {
+  id            String    @id @default(cuid())
+  numeroSim     String    @unique
+  operador      String?
+  tipo          String?
+  plan          String?
+  estado        String    @default("disponible")
+  observaciones String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  unidad        Unidad?   @relation(fields: [unidadId], references: [id])
+  unidadId      String?   @unique
+}
+
+model Unidad {
+  id            String    @id @default(cuid())
+  placa         String    @unique
+  nombre        String?
+  marcaVehiculo String?
+  modeloVehiculo String?
+  anio          Int?
+  color         String?
+  observaciones String?
+  estado        String    @default("activo")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  clienteId     String
+  cliente       Cliente   @relation(fields: [clienteId], references: [id])
+  equipoGPS     EquipoGPS?
+  simCard       SIMCard?
+  renovaciones  Renovacion[]
+}
+
+model Renovacion {
+  id              String    @id @default(cuid())
+  clienteId       String
+  cliente         Cliente   @relation(fields: [clienteId], references: [id])
+  unidadId        String
+  unidad          Unidad    @relation(fields: [unidadId], references: [id])
+  fechaInicio     DateTime
+  fechaVencimiento DateTime
+  estado          String    @default("vigente")
+  notificado      Boolean   @default(false)
+  resultado       String?
+  fechaResultado  DateTime?
+  observaciones   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Notificacion {
+  id          String    @id @default(cuid())
+  tipo        String
+  destino     String
+  asunto      String?
+  mensaje     String
+  estado      String    @default("pendiente")
+  createdAt   DateTime  @default(now())
+  enviadaAt   DateTime?
+}
