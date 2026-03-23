@@ -3,12 +3,19 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
+  // Limpiar datos existentes
+  await prisma.notificacion.deleteMany()
+  await prisma.renovacion.deleteMany()
+  await prisma.unidad.deleteMany()
+  await prisma.sIMCard.deleteMany()
+  await prisma.equipoGPS.deleteMany()
+  await prisma.cliente.deleteMany()
+  console.log('Datos anteriores eliminados')
+
   // Crear clientes
   const clientes = await Promise.all([
-    prisma.cliente.upsert({
-      where: { cedulaRuc: '12345678-1' },
-      update: {},
-      create: {
+    prisma.cliente.create({
+      data: {
         nombre: 'Transportes García S.A.',
         cedulaRuc: '12345678-1',
         telefono: '+507 234-5678',
@@ -19,10 +26,8 @@ async function main() {
         pais: 'Panamá',
       },
     }),
-    prisma.cliente.upsert({
-      where: { cedulaRuc: '87654321-2' },
-      update: {},
-      create: {
+    prisma.cliente.create({
+      data: {
         nombre: 'Logística Express',
         cedulaRuc: '87654321-2',
         telefono: '+507 432-1098',
@@ -32,10 +37,8 @@ async function main() {
         pais: 'Panamá',
       },
     }),
-    prisma.cliente.upsert({
-      where: { cedulaRuc: '11223344-3' },
-      update: {},
-      create: {
+    prisma.cliente.create({
+      data: {
         nombre: 'Flotas Rápidas S.A.',
         cedulaRuc: '11223344-3',
         telefono: '+507 555-1234',
@@ -50,20 +53,14 @@ async function main() {
 
   // Crear equipos GPS
   const equipos = await Promise.all([
-    prisma.equipoGPS.upsert({
-      where: { imei: '861234567890123' },
-      update: {},
-      create: { imei: '861234567890123', marca: 'Teltonika', modelo: 'FMB120', tipo: 'vehicular', tecnologia: '4G', estado: 'disponible' },
+    prisma.equipoGPS.create({
+      data: { imei: '861234567890123', marca: 'Teltonika', modelo: 'FMB120', tipo: 'vehicular', tecnologia: '4G', estado: 'disponible' },
     }),
-    prisma.equipoGPS.upsert({
-      where: { imei: '861234567890124' },
-      update: {},
-      create: { imei: '861234567890124', marca: 'Teltonika', modelo: 'FMB125', tipo: 'vehicular', tecnologia: '4G', estado: 'disponible' },
+    prisma.equipoGPS.create({
+      data: { imei: '861234567890124', marca: 'Teltonika', modelo: 'FMB125', tipo: 'vehicular', tecnologia: '4G', estado: 'disponible' },
     }),
-    prisma.equipoGPS.upsert({
-      where: { imei: '861234567890125' },
-      update: {},
-      create: { imei: '861234567890125', marca: 'Suntech', modelo: 'ST310', tipo: 'vehicular', tecnologia: '3G', estado: 'disponible' },
+    prisma.equipoGPS.create({
+      data: { imei: '861234567890125', marca: 'Suntech', modelo: 'ST310', tipo: 'vehicular', tecnologia: '3G', estado: 'disponible' },
     }),
   ])
 
@@ -71,15 +68,11 @@ async function main() {
 
   // Crear SIM Cards
   const sims = await Promise.all([
-    prisma.sIMCard.upsert({
-      where: { numeroSim: '50712345678' },
-      update: {},
-      create: { numeroSim: '50712345678', operador: 'Claro', tipo: 'postpago', plan: 'Datos 2GB', estado: 'disponible' },
+    prisma.sIMCard.create({
+      data: { numeroSim: '50712345678', operador: 'Claro', tipo: 'postpago', plan: 'Datos 2GB', estado: 'disponible' },
     }),
-    prisma.sIMCard.upsert({
-      where: { numeroSim: '50712345679' },
-      update: {},
-      create: { numeroSim: '50712345679', operador: 'Movistar', tipo: 'prepago', plan: 'Datos 1GB', estado: 'disponible' },
+    prisma.sIMCard.create({
+      data: { numeroSim: '50712345679', operador: 'Movistar', tipo: 'prepago', plan: 'Datos 1GB', estado: 'disponible' },
     }),
   ])
 
@@ -122,7 +115,7 @@ async function main() {
       data: { tipo: 'email', destino: 'contacto@transportesgarcia.com', asunto: 'Recordatorio de renovación', mensaje: 'Su servicio GPS está próximo a vencer.', estado: 'enviada', enviadaAt: new Date() },
     }),
     prisma.notificacion.create({
-      data: { tipo: 'whatsapp', destino: '+507 234-5678', mensaje: 'GPS Admin: Su plan vence en 7 días.', estado: 'enviada', enviadaAt: new Date() },
+      data: { tipo: 'whatsapp', destino: '+507 234-5678', mensaje: 'AssetsLease: Su plan vence en 7 días.', estado: 'enviada', enviadaAt: new Date() },
     }),
   ])
 
