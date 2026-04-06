@@ -42,7 +42,7 @@ export default function ClientesModule() {
     try {
       const response = await fetch('/api/clientes')
       const data = await response.json()
-      setClientes(data)
+      setClientes(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching clientes:', error)
     } finally {
@@ -122,8 +122,57 @@ export default function ClientesModule() {
       c.cedulaRuc.includes(searchTerm)
   )
 
+  // Estadísticas
+  const stats = {
+    total: clientes.length,
+    activos: clientes.filter(c => c.estado === 'activo').length,
+    inactivos: clientes.filter(c => c.estado === 'inactivo').length,
+    mensuales: clientes.filter(c => c.tipoPlan === 'mensual').length,
+    anuales: clientes.filter(c => c.tipoPlan === 'anual').length,
+  }
+
   return (
     <div>
+      {/* Stats Cards */}
+      <div className="row g-4 mb-4">
+        <div className="col-6 col-xl-3">
+          <div className="card border-0 shadow-sm h-100 bg-primary bg-gradient text-white">
+            <div className="card-body text-center py-3">
+              <i className="bi bi-people fs-3 mb-2 opacity-75"></i>
+              <h3 className="fw-bold mb-0">{stats.total}</h3>
+              <small className="opacity-75">Total Clientes</small>
+            </div>
+          </div>
+        </div>
+        <div className="col-6 col-xl-3">
+          <div className="card border-0 shadow-sm h-100 bg-success bg-gradient text-white">
+            <div className="card-body text-center py-3">
+              <i className="bi bi-check-circle fs-3 mb-2 opacity-75"></i>
+              <h3 className="fw-bold mb-0">{stats.activos}</h3>
+              <small className="opacity-75">Activos</small>
+            </div>
+          </div>
+        </div>
+        <div className="col-6 col-xl-3">
+          <div className="card border-0 shadow-sm h-100 bg-secondary bg-gradient text-white">
+            <div className="card-body text-center py-3">
+              <i className="bi bi-pause-circle fs-3 mb-2 opacity-75"></i>
+              <h3 className="fw-bold mb-0">{stats.inactivos}</h3>
+              <small className="opacity-75">Inactivos</small>
+            </div>
+          </div>
+        </div>
+        <div className="col-6 col-xl-3">
+          <div className="card border-0 shadow-sm h-100 bg-info bg-gradient text-white">
+            <div className="card-body text-center py-3">
+              <i className="bi bi-calendar-check fs-3 mb-2 opacity-75"></i>
+              <h3 className="fw-bold mb-0">{stats.anuales}</h3>
+              <small className="opacity-75">Plan Anual</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="d-flex flex-column flex-md-row gap-3 justify-content-between mb-4">
         <div className="input-group" style={{ maxWidth: '400px' }}>
