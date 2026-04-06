@@ -11,7 +11,6 @@ export default function Header() {
     equipos: "Equipos GPS",
     sims: "SIM Cards",
     unidades: "Unidades / Vehículos",
-	asignaciones: "Historial de Asignaciones",
     renovaciones: "Renovaciones",
     notificaciones: "Notificaciones",
   };
@@ -19,8 +18,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm border-bottom px-4 py-3">
       <div className="d-flex align-items-center justify-content-between">
-        {/* Título con margen en móvil para no superponer con botón hamburguesa */}
-        <div className="d-flex align-items-center gap-3 ms-4 ms-lg-0">
+        <div className="d-flex align-items-center gap-3">
           <button
             className="btn btn-outline-secondary d-none d-lg-inline-block"
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -31,7 +29,7 @@ export default function Header() {
             {titles[currentView] || "Dashboard"}
           </h4>
         </div>
-        <div className="d-flex align-items-center gap-2 gap-md-3">
+        <div className="d-flex align-items-center gap-3">
           <button className="btn btn-light position-relative">
             <i className="bi bi-bell"></i>
             <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">

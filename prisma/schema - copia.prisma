@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  url       = env("PRISMA_DATABASE_URL")
   directUrl = env("POSTGRES_URL")
 }
 
@@ -38,7 +38,6 @@ model EquipoGPS {
   updatedAt     DateTime    @updatedAt
   unidad        Unidad?     @relation(fields: [unidadId], references: [id])
   unidadId      String?     @unique
-  historial     HistorialAsignacion[]
 }
 
 model SIMCard {
@@ -53,7 +52,6 @@ model SIMCard {
   updatedAt     DateTime  @updatedAt
   unidad        Unidad?   @relation(fields: [unidadId], references: [id])
   unidadId      String?   @unique
-  historial     HistorialAsignacion[]
 }
 
 model Unidad {
@@ -73,7 +71,6 @@ model Unidad {
   equipoGPS     EquipoGPS?
   simCard       SIMCard?
   renovaciones  Renovacion[]
-  historial     HistorialAsignacion[]
 }
 
 model Renovacion {
@@ -102,17 +99,4 @@ model Notificacion {
   estado      String    @default("pendiente")
   createdAt   DateTime  @default(now())
   enviadaAt   DateTime?
-}
-
-model HistorialAsignacion {
-  id          String    @id @default(cuid())
-  unidadId    String
-  unidad      Unidad    @relation(fields: [unidadId], references: [id])
-  equipoGPSId String?
-  equipoGPS   EquipoGPS? @relation(fields: [equipoGPSId], references: [id])
-  simCardId   String?
-  simCard     SIMCard?  @relation(fields: [simCardId], references: [id])
-  tipoCambio  String
-  descripcion String?
-  createdAt   DateTime  @default(now())
 }

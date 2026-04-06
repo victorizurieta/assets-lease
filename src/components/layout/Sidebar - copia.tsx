@@ -14,7 +14,6 @@ const navItems: NavItem[] = [
   { id: "equipos", label: "Equipos GPS", icon: "bi-broadcast" },
   { id: "sims", label: "SIM Cards", icon: "bi-sim" },
   { id: "unidades", label: "Unidades", icon: "bi-truck" },
-  { id: "asignaciones", label: "Asignaciones", icon: "bi-arrow-left-right" }, 
   { id: "renovaciones", label: "Renovaciones", icon: "bi-calendar-check" },
   { id: "notificaciones", label: "Notificaciones", icon: "bi-bell" },
 ];
@@ -25,10 +24,10 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile toggle button - z-index alto para que siempre sea visible */}
+      {/* Mobile toggle button */}
       <button
         className="btn btn-dark position-fixed d-lg-none"
-        style={{ top: "10px", left: "10px", zIndex: 1100 }}
+        style={{ top: "10px", left: "10px", zIndex: 1050 }}
         onClick={() => setSidebarOpen(!sidebarOpen)}
       >
         <i className={`bi ${sidebarOpen ? "bi-x-lg" : "bi-list"}`}></i>
@@ -43,10 +42,10 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Sidebar - z-index entre overlay y botón hamburguesa */}
+      {/* Sidebar */}
       <aside
         className={`position-fixed top-0 start-0 h-100 bg-dark text-white ${sidebarOpen ? "" : "d-none d-lg-block"}`}
-        style={{ width: "280px", zIndex: 1050 }}
+        style={{ width: "280px", zIndex: 1041 }}
       >
         {/* Logo */}
         <div className="d-flex align-items-center gap-3 p-4 border-bottom border-secondary">

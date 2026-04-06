@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Dashboard from "@/components/dashboard/Dashboard";
@@ -7,13 +8,12 @@ import ClientesModule from "@/components/clientes/ClientesModule";
 import EquiposModule from "@/components/equipos/EquiposModule";
 import SimsModule from "@/components/sims/SimsModule";
 import UnidadesModule from "@/components/unidades/UnidadesModule";
-import AsignacionesModule from "@/components/asignaciones/AsignacionesModule";
 import RenovacionesModule from "@/components/renovaciones/RenovacionesModule";
 import NotificacionesModule from "@/components/notificaciones/NotificacionesModule";
 import { useAppStore } from "@/lib/store";
 
 export default function Home() {
-  const { currentView } = useAppStore();
+  const { currentView, sidebarOpen } = useAppStore();
 
   const renderContent = () => {
     switch (currentView) {
@@ -27,8 +27,6 @@ export default function Home() {
         return <SimsModule />;
       case "unidades":
         return <UnidadesModule />;
- 	  case "asignaciones":
-		return <AsignacionesModule />;
       case "renovaciones":
         return <RenovacionesModule />;
       case "notificaciones":
@@ -41,20 +39,12 @@ export default function Home() {
   return (
     <div className="min-vh-100 bg-light">
       <Sidebar />
-      {/* 
-        En desktop (d-lg-block): Sidebar siempre visible, margen fijo de 280px
-        En móvil: Sidebar como overlay, sin margen
-      */}
-      <div className="ms-lg-auto" style={{ marginLeft: "0" }}>
-        <style jsx>{`
-          @media (min-width: 992px) {
-            div {
-              margin-left: 280px !important;
-            }
-          }
-        `}</style>
+      <div
+        className="transition-all"
+        style={{ marginLeft: sidebarOpen ? "280px" : "0" }}
+      >
         <Header />
-        <main className="p-3 p-md-4">{renderContent()}</main>
+        <main className="p-4">{renderContent()}</main>
       </div>
     </div>
   );

@@ -27,7 +27,6 @@ export default function Dashboard() {
     renovacionesPendientes: 0,
   })
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchStats()
@@ -49,32 +48,19 @@ export default function Dashboard() {
       const unidades = await unidadesRes.json()
       const renovaciones = await renovacionesRes.json()
 
-      // Validar que sean arrays, si no, usar arrays vacíos
-      const clientesArray = Array.isArray(clientes) ? clientes : []
-      const equiposArray = Array.isArray(equipos) ? equipos : []
-      const simsArray = Array.isArray(sims) ? sims : []
-      const unidadesArray = Array.isArray(unidades) ? unidades : []
-      const renovacionesArray = Array.isArray(renovaciones) ? renovaciones : []
-
-      // Si alguna respuesta es un error, mostrarlo
-      if (!Array.isArray(clientes) && clientes.error) {
-        setError(clientes.error)
-      }
-
       setStats({
-        totalClientes: clientesArray.length,
-        clientesActivos: clientesArray.filter((c: any) => c.estado === 'activo').length,
-        totalEquipos: equiposArray.length,
-        equiposDisponibles: equiposArray.filter((e: any) => e.estado === 'disponible').length,
-        totalSims: simsArray.length,
-        simsDisponibles: simsArray.filter((s: any) => s.estado === 'disponible').length,
-        totalUnidades: unidadesArray.length,
-        unidadesActivas: unidadesArray.filter((u: any) => u.estado === 'activo').length,
-        renovacionesPendientes: renovacionesArray.filter((r: any) => r.estado === 'por_vencer' || r.estado === 'vencida').length,
+        totalClientes: clientes.length,
+        clientesActivos: clientes.filter((c: any) => c.estado === 'activo').length,
+        totalEquipos: equipos.length,
+        equiposDisponibles: equipos.filter((e: any) => e.estado === 'disponible').length,
+        totalSims: sims.length,
+        simsDisponibles: sims.filter((s: any) => s.estado === 'disponible').length,
+        totalUnidades: unidades.length,
+        unidadesActivas: unidades.filter((u: any) => u.estado === 'activo').length,
+        renovacionesPendientes: renovaciones.filter((r: any) => r.estado === 'por_vencer' || r.estado === 'vencida').length,
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
-      setError('Error al cargar datos')
     } finally {
       setLoading(false)
     }
@@ -92,15 +78,6 @@ export default function Dashboard() {
 
   return (
     <div>
-      {/* Error Alert */}
-      {error && (
-        <div className="alert alert-warning alert-dismissible fade show" role="alert">
-          <i className="bi bi-exclamation-triangle me-2"></i>
-          {error}
-          <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={() => setError(null)}></button>
-        </div>
-      )}
-
       {/* Stats Cards */}
       <div className="row g-4 mb-4">
         <div className="col-sm-6 col-xl-3">
