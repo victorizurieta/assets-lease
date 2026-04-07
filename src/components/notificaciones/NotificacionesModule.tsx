@@ -12,31 +12,31 @@ interface Notificacion {
   error?: string
   createdAt: string
   enviadaAt?: string
+  cliente?: { nombre: string }
 }
 
 export default function NotificacionesModule() {
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterEstado, setFilterEstado] = useState('todos')
-  const [filterTipo, setFilterTipo] = useState('todos')
+  const [emailConfigured, setEmailConfigured] = useState(false)
+  const [sending, setSending] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({
-    tipo: 'email',
-    destino: '',
-    asunto: '',
-    mensaje: '',
+    to: '',
+    subject: '',
+    message: ''
   })
 
   useEffect(() => {
     fetchNotificaciones()
+    checkEmailConfig()
   }, [])
 
   const fetchNotificaciones = async () => {
     try {
       const response = await fetch('/api/notificaciones')
       const data = await response.json()
-      setNotificaciones(data)
+      setNotificaciones(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching notificaciones:', error)
     } finally {
@@ -44,30 +44,98 @@ export default function NotificacionesModule() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const checkEmailConfig = async () => {
     try {
-      await fetch('/api/notificaciones', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-      fetchNotificaciones()
-      setShowModal(false)
-      setFormData({ tipo: 'email', destino: '', asunto: '', mensaje: '' })
+      const response = await fetch('/api/email')
+      const data = await response.json()
+      setEmailConfigured(data.configured)
     } catch (error) {
-      console.error('Error sending notification:', error)
+      console.error('Error checking email config:', error)
     }
   }
 
-  const filteredNotificaciones = notificaciones.filter((n) => {
-    const matchesSearch = 
-      n.destino.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      n.mensaje.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesEstado = filterEstado === 'todos' || n.estado === filterEstado
-    const matchesTipo = filterTipo === 'todos' || n.tipo === filterTipo
-    return matchesSearch && matchesEstado && matchesTipo
-  })
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSending(true)
+    try {
+      const response = await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: formData.to,
+          subject: formData.subject,
+          html: `<div style="font-family: Arial, sans-serif; padding: 20px;">${formData.message.replace(/\n/g, '<br>')}</div>`,
+          text: formData.message
+        })
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        alert('Email enviado correctamente')
+        setShowModal(false)
+        setFormData({ to: '', subject: '', message: '' })
+        fetchNotificaciones()
+      } else {
+        alert('Error: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error sending email:', error)
+      alert('Error al enviar email')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleVerificarRenovaciones = async () => {
+    if (!confirm('¿Desea enviar notificaciones de renovaciones próximas?')) return
+    
+    setSending(true)
+    try {
+      const response = await fetch('/api/notificaciones/verificar', {
+        method: 'POST'
+      })
+      const result = await response.json()
+      
+      alert(`Proceso completado: ${result.enviadas} notificaciones enviadas, ${result.errores} errores`)
+      fetchNotificaciones()
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error al verificar renovaciones')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const getTipoBadge = (tipo: string) => {
+    if (tipo === 'email') {
+      return <span className="badge bg-primary"><i className="bi bi-envelope me-1"></i>Email</span>
+    }
+    return <span className="badge bg-success"><i className="bi bi-whatsapp me-1"></i>WhatsApp</span>
+  }
+
+  const getEstadoBadge = (estado: string) => {
+    switch (estado) {
+      case 'enviada':
+        return <span className="badge bg-success">Enviada</span>
+      case 'pendiente':
+        return <span className="badge bg-warning text-dark">Pendiente</span>
+      case 'fallida':
+        return <span className="badge bg-danger">Fallida</span>
+      default:
+        return <span className="badge bg-secondary">{estado}</span>
+    }
+  }
 
   const stats = {
     total: notificaciones.length,
@@ -76,122 +144,88 @@ export default function NotificacionesModule() {
     fallidas: notificaciones.filter(n => n.estado === 'fallida').length,
   }
 
-  const getTipoBadge = (tipo: string) => {
-    return tipo === 'email' 
-      ? <span className="badge bg-primary bg-opacity-10 text-primary"><i className="bi bi-envelope me-1"></i>Email</span>
-      : <span className="badge bg-success bg-opacity-10 text-success"><i className="bi bi-whatsapp me-1"></i>WhatsApp</span>
-  }
-
-  const getEstadoBadge = (estado: string) => {
-    switch (estado) {
-      case 'enviada':
-        return <span className="badge bg-success"><i className="bi bi-check-circle me-1"></i>Enviada</span>
-      case 'pendiente':
-        return <span className="badge bg-warning text-dark"><i className="bi bi-clock me-1"></i>Pendiente</span>
-      case 'fallida':
-        return <span className="badge bg-danger"><i className="bi bi-x-circle me-1"></i>Fallida</span>
-      default:
-        return <span className="badge bg-secondary">{estado}</span>
-    }
-  }
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-PA', { 
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    })
-  }
-
   return (
     <div>
-      {/* Stats */}
-      <div className="row g-3 mb-4">
-        <div className="col-6 col-md-3">
-          <div className="card border-0 bg-dark text-white h-100">
+      {/* Stats Cards */}
+      <div className="row g-4 mb-4">
+        <div className="col-6 col-xl-3">
+          <div className="card border-0 shadow-sm h-100 bg-primary bg-gradient text-white">
             <div className="card-body text-center py-3">
-              <i className="bi bi-bell fs-4 mb-2 d-block opacity-75"></i>
-              <h4 className="mb-0 fw-bold">{stats.total}</h4>
+              <i className="bi bi-bell fs-3 mb-2 opacity-75"></i>
+              <h3 className="fw-bold mb-0">{stats.total}</h3>
               <small className="opacity-75">Total</small>
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
-          <div className="card border-0 bg-success text-white h-100">
+        <div className="col-6 col-xl-3">
+          <div className="card border-0 shadow-sm h-100 bg-success bg-gradient text-white">
             <div className="card-body text-center py-3">
-              <i className="bi bi-check-circle fs-4 mb-2 d-block opacity-75"></i>
-              <h4 className="mb-0 fw-bold">{stats.enviadas}</h4>
+              <i className="bi bi-check-circle fs-3 mb-2 opacity-75"></i>
+              <h3 className="fw-bold mb-0">{stats.enviadas}</h3>
               <small className="opacity-75">Enviadas</small>
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
-          <div className="card border-0 bg-warning text-dark h-100">
+        <div className="col-6 col-xl-3">
+          <div className="card border-0 shadow-sm h-100 bg-warning bg-gradient text-white">
             <div className="card-body text-center py-3">
-              <i className="bi bi-clock fs-4 mb-2 d-block opacity-75"></i>
-              <h4 className="mb-0 fw-bold">{stats.pendientes}</h4>
+              <i className="bi bi-clock fs-3 mb-2 opacity-75"></i>
+              <h3 className="fw-bold mb-0">{stats.pendientes}</h3>
               <small className="opacity-75">Pendientes</small>
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
-          <div className="card border-0 bg-danger text-white h-100">
+        <div className="col-6 col-xl-3">
+          <div className="card border-0 shadow-sm h-100 bg-danger bg-gradient text-white">
             <div className="card-body text-center py-3">
-              <i className="bi bi-x-circle fs-4 mb-2 d-block opacity-75"></i>
-              <h4 className="mb-0 fw-bold">{stats.fallidas}</h4>
+              <i className="bi bi-x-circle fs-3 mb-2 opacity-75"></i>
+              <h3 className="fw-bold mb-0">{stats.fallidas}</h3>
               <small className="opacity-75">Fallidas</small>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="d-flex flex-column flex-md-row gap-3 justify-content-between mb-4">
-        <div className="d-flex gap-2 flex-wrap">
-          <div className="input-group" style={{ maxWidth: '300px' }}>
-            <span className="input-group-text bg-white">
-              <i className="bi bi-search text-muted"></i>
-            </span>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Buscar por destino o mensaje..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      {/* Email Config Alert */}
+      {!emailConfigured && (
+        <div className="alert alert-warning d-flex align-items-center mb-4" role="alert">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          <div>
+            <strong>Email no configurado.</strong> Vaya a <a href="#" onClick={() => window.location.reload()}>Administración</a> para configurar la API Key de Resend.
           </div>
-          <select 
-            className="form-select" 
-            style={{ maxWidth: '130px' }}
-            value={filterEstado}
-            onChange={(e) => setFilterEstado(e.target.value)}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="d-flex flex-column flex-md-row gap-3 justify-content-between mb-4">
+        <div>
+          <button 
+            className="btn btn-outline-primary me-2"
+            onClick={handleVerificarRenovaciones}
+            disabled={sending || !emailConfigured}
           >
-            <option value="todos">Estado</option>
-            <option value="enviada">Enviadas</option>
-            <option value="pendiente">Pendientes</option>
-            <option value="fallida">Fallidas</option>
-          </select>
-          <select 
-            className="form-select" 
-            style={{ maxWidth: '130px' }}
-            value={filterTipo}
-            onChange={(e) => setFilterTipo(e.target.value)}
-          >
-            <option value="todos">Tipo</option>
-            <option value="email">Email</option>
-            <option value="whatsapp">WhatsApp</option>
-          </select>
+            <i className="bi bi-calendar-check me-2"></i>
+            Verificar Renovaciones
+          </button>
         </div>
         <button 
           className="btn btn-success"
           onClick={() => setShowModal(true)}
+          disabled={!emailConfigured}
         >
           <i className="bi bi-send me-2"></i>
-          Nueva Notificación
+          Enviar Email de Prueba
         </button>
       </div>
 
       {/* Table */}
       <div className="card border-0 shadow-sm">
+        <div className="card-header bg-white py-3">
+          <h5 className="mb-0 fw-semibold">
+            <i className="bi bi-list-ul text-success me-2"></i>
+            Historial de Notificaciones
+          </h5>
+        </div>
         <div className="card-body p-0">
           <div className="table-responsive">
             <table className="table table-hover align-middle mb-0">
@@ -200,50 +234,43 @@ export default function NotificacionesModule() {
                   <th className="border-0 px-4 py-3">Fecha</th>
                   <th className="border-0 py-3">Tipo</th>
                   <th className="border-0 py-3">Destino</th>
-                  <th className="border-0 py-3">Mensaje</th>
+                  <th className="border-0 py-3">Asunto</th>
                   <th className="border-0 py-3">Estado</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-5 text-muted">
-                      Cargando notificaciones...
+                    <td colSpan={5} className="text-center py-5">
+                      <div className="spinner-border text-success" role="status">
+                        <span className="visually-hidden">Cargando...</span>
+                      </div>
                     </td>
                   </tr>
-                ) : filteredNotificaciones.length === 0 ? (
+                ) : notificaciones.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-5 text-muted">
-                      No se encontraron notificaciones
+                      <i className="bi bi-inbox fs-1 d-block mb-2"></i>
+                      No hay notificaciones
                     </td>
                   </tr>
                 ) : (
-                  filteredNotificaciones.map((notificacion) => (
-                    <tr key={notificacion.id}>
+                  notificaciones.map((notif) => (
+                    <tr key={notif.id}>
                       <td className="px-4">
-                        <small className="text-muted">{formatDate(notificacion.createdAt)}</small>
+                        <small>{formatDate(notif.createdAt)}</small>
                       </td>
-                      <td>{getTipoBadge(notificacion.tipo)}</td>
+                      <td>{getTipoBadge(notif.tipo)}</td>
                       <td>
-                        <div className="d-flex align-items-center">
-                          <i className={`bi ${notificacion.tipo === 'email' ? 'bi-envelope text-primary' : 'bi-whatsapp text-success'} me-2`}></i>
-                          <code>{notificacion.destino}</code>
-                        </div>
-                      </td>
-                      <td style={{ maxWidth: '250px' }}>
-                        {notificacion.asunto && (
-                          <p className="mb-0 fw-medium small truncate">{notificacion.asunto}</p>
+                        <small>{notif.destino}</small>
+                        {notif.cliente && (
+                          <small className="text-muted d-block">{notif.cliente.nombre}</small>
                         )}
-                        <p className="mb-0 small text-muted truncate">{notificacion.mensaje}</p>
                       </td>
                       <td>
-                        <div>
-                          {getEstadoBadge(notificacion.estado)}
-                          {notificacion.error && (
-                            <small className="d-block text-danger mt-1">{notificacion.error}</small>
-                          )}
-                        </div>
+                        <small>{notif.asunto || notif.mensaje.substring(0, 50)}...</small>
                       </td>
+                      <td>{getEstadoBadge(notif.estado)}</td>
                     </tr>
                   ))
                 )}
@@ -253,71 +280,70 @@ export default function NotificacionesModule() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal Enviar Email */}
       {showModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Nueva Notificación</h5>
+                <h5 className="modal-title">
+                  <i className="bi bi-envelope me-2"></i>
+                  Enviar Email de Prueba
+                </h5>
                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
               </div>
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSendEmail}>
                 <div className="modal-body">
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <label className="form-label">Tipo</label>
-                      <select 
-                        className="form-select"
-                        value={formData.tipo}
-                        onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                      >
-                        <option value="email">Email</option>
-                        <option value="whatsapp">WhatsApp</option>
-                      </select>
-                    </div>
-                    <div className="col-12">
-                      <label className="form-label">
-                        {formData.tipo === 'email' ? 'Correo Electrónico' : 'Número de WhatsApp'}
-                      </label>
-                      <input
-                        type={formData.tipo === 'email' ? 'email' : 'text'}
-                        className="form-control"
-                        value={formData.destino}
-                        onChange={(e) => setFormData({ ...formData, destino: e.target.value })}
-                        required
-                        placeholder={formData.tipo === 'email' ? 'correo@ejemplo.com' : '+507 1234-5678'}
-                      />
-                    </div>
-                    {formData.tipo === 'email' && (
-                      <div className="col-12">
-                        <label className="form-label">Asunto</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={formData.asunto}
-                          onChange={(e) => setFormData({ ...formData, asunto: e.target.value })}
-                        />
-                      </div>
-                    )}
-                    <div className="col-12">
-                      <label className="form-label">Mensaje</label>
-                      <textarea
-                        className="form-control"
-                        rows={4}
-                        value={formData.mensaje}
-                        onChange={(e) => setFormData({ ...formData, mensaje: e.target.value })}
-                        required
-                      ></textarea>
-                    </div>
+                  <div className="mb-3">
+                    <label className="form-label">Para</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      value={formData.to}
+                      onChange={(e) => setFormData({ ...formData, to: e.target.value })}
+                      placeholder="correo@ejemplo.com"
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Asunto</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      placeholder="Asunto del email"
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Mensaje</label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      placeholder="Escribe tu mensaje..."
+                      required
+                    ></textarea>
                   </div>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn btn-success">
-                    <i className="bi bi-send me-2"></i>Enviar
+                  <button type="submit" className="btn btn-success" disabled={sending}>
+                    {sending ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-send me-2"></i>
+                        Enviar
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

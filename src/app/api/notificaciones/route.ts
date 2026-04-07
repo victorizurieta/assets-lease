@@ -5,6 +5,12 @@ export async function GET() {
   try {
     const notificaciones = await db.notificacion.findMany({
       orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: {
+        cliente: {
+          select: { nombre: true }
+        }
+      }
     })
     return NextResponse.json(notificaciones)
   } catch (error) {
@@ -16,16 +22,15 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json()
     
-    // Aquí iría la lógica real de envío (Email/WhatsApp)
-    // Por ahora solo guardamos como "enviada" para demo
     const notificacion = await db.notificacion.create({
       data: {
         tipo: data.tipo,
         destino: data.destino,
         asunto: data.asunto || null,
         mensaje: data.mensaje,
-        estado: 'enviada',
-        enviadaAt: new Date(),
+        estado: data.estado || 'pendiente',
+        clienteId: data.clienteId || null,
+        renovacionId: data.renovacionId || null,
       }
     })
     return NextResponse.json(notificacion, { status: 201 })
