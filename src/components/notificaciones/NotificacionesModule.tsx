@@ -191,7 +191,7 @@ export default function NotificacionesModule() {
         <div className="alert alert-warning d-flex align-items-center mb-4" role="alert">
           <i className="bi bi-exclamation-triangle me-2"></i>
           <div>
-            <strong>Email no configurado.</strong> Vaya a <a href="#" onClick={() => window.location.reload()}>Administración</a> para configurar la API Key de Resend.
+            <strong>Email no configurado.</strong> Vaya a <strong>Administración</strong> para configurar la API Key de Resend.
           </div>
         </div>
       )}
