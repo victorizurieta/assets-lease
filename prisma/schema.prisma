@@ -22,7 +22,8 @@ model Cliente {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   unidades      Unidad[]
-  renovaciones  Renovacion[]
+  renovaciones  Renovacion[]}
+  notificaciones  Notificacion[] 
 }
 
 model EquipoGPS {
@@ -94,14 +95,18 @@ model Renovacion {
 }
 
 model Notificacion {
-  id          String    @id @default(cuid())
-  tipo        String
-  destino     String
-  asunto      String?
-  mensaje     String
-  estado      String    @default("pendiente")
-  createdAt   DateTime  @default(now())
-  enviadaAt   DateTime?
+  id            String    @id @default(cuid())
+  tipo          String
+  destino       String
+  asunto        String?
+  mensaje       String
+  estado        String    @default("pendiente")
+  error         String?
+  renovacionId  String?
+  clienteId     String?
+  createdAt     DateTime  @default(now())
+  enviadaAt     DateTime?
+  cliente       Cliente?  @relation(fields: [clienteId], references: [id])
 }
 
 model HistorialAsignacion {
