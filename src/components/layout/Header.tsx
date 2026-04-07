@@ -1,9 +1,11 @@
 "use client";
 
 import { useAppStore } from "@/lib/store";
+import { useState, useEffect } from "react";
 
 export default function Header() {
   const { currentView, setSidebarOpen, sidebarOpen } = useAppStore();
+  const [currentDate, setCurrentDate] = useState("");
 
   const titles: Record<string, string> = {
     dashboard: "Dashboard",
@@ -11,15 +13,24 @@ export default function Header() {
     equipos: "Equipos GPS",
     sims: "SIM Cards",
     unidades: "Unidades / Vehículos",
-	asignaciones: "Historial de Asignaciones",
+    asignaciones: "Historial de Asignaciones",
     renovaciones: "Renovaciones",
     notificaciones: "Notificaciones",
   };
 
+  // Renderizar fecha solo en el cliente para evitar error de hidratación
+  useEffect(() => {
+    setCurrentDate(new Date().toLocaleDateString('es-ES', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }));
+  }, []);
+
   return (
     <header className="bg-white shadow-sm border-bottom px-4 py-3">
       <div className="d-flex align-items-center justify-content-between">
-        {/* Título con margen en móvil para no superponer con botón hamburguesa */}
         <div className="d-flex align-items-center gap-3 ms-4 ms-lg-0">
           <button
             className="btn btn-outline-secondary d-none d-lg-inline-block"
@@ -27,9 +38,14 @@ export default function Header() {
           >
             <i className="bi bi-list"></i>
           </button>
-          <h4 className="mb-0 fw-semibold text-dark">
-            {titles[currentView] || "Dashboard"}
-          </h4>
+          <div>
+            <h4 className="mb-0 fw-semibold text-dark">
+              {titles[currentView] || "Dashboard"}
+            </h4>
+            <p className="text-muted mb-0 small d-none d-sm-block">
+              {currentDate}
+            </p>
+          </div>
         </div>
         <div className="d-flex align-items-center gap-2 gap-md-3">
           <button className="btn btn-light position-relative">
