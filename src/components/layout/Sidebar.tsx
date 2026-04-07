@@ -17,6 +17,7 @@ const navItems: NavItem[] = [
   { id: "asignaciones", label: "Asignaciones", icon: "bi-arrow-left-right" }, 
   { id: "renovaciones", label: "Renovaciones", icon: "bi-calendar-check" },
   { id: "notificaciones", label: "Notificaciones", icon: "bi-bell" },
+  { id: "admin", label: "Administración", icon: "bi-gear" },
 ];
 
 export default function Sidebar() {

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type ViewType = 'dashboard' | 'clientes' | 'equipos' | 'sims' | 'unidades' | 'asignaciones' | 'renovaciones' | 'notificaciones'
+export type ViewType = 'dashboard' | 'clientes' | 'equipos' | 'sims' | 'unidades' | 'asignaciones' | 'renovaciones' | 'notificaciones' | 'admin'
 
 interface AppState {
   currentView: ViewType

@@ -16,6 +16,7 @@ export default function Header() {
     asignaciones: "Historial de Asignaciones",
     renovaciones: "Renovaciones",
     notificaciones: "Notificaciones",
+	admin: "Administración",
   };
 
   // Renderizar fecha solo en el cliente para evitar error de hidratación

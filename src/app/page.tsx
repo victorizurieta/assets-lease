@@ -10,6 +10,7 @@ import UnidadesModule from "@/components/unidades/UnidadesModule";
 import AsignacionesModule from "@/components/asignaciones/AsignacionesModule";
 import RenovacionesModule from "@/components/renovaciones/RenovacionesModule";
 import NotificacionesModule from "@/components/notificaciones/NotificacionesModule";
+import AdminModule from "@/components/admin/AdminModule";
 import { useAppStore } from "@/lib/store";
 
 export default function Home() {
@@ -33,6 +34,8 @@ export default function Home() {
         return <RenovacionesModule />;
       case "notificaciones":
         return <NotificacionesModule />;
+	  case "admin":
+		return <AdminModule />;
       default:
         return <Dashboard />;
     }
