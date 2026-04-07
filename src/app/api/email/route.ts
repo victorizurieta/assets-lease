@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Resend from 'resend';
+import { Resend } from 'resend';
 
 // GET - Probar configuración de email
 export async function GET() {

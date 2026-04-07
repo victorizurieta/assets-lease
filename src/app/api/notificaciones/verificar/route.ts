@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import Resend from 'resend';
+import { Resend } from 'resend';
 
 // POST - Verificar y enviar notificaciones de renovaciones próximas
 export async function POST() {
