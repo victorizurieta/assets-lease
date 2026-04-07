@@ -22,8 +22,8 @@ model Cliente {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   unidades      Unidad[]
-  renovaciones  Renovacion[]}
-  notificaciones  Notificacion[] 
+  renovaciones  Renovacion[]
+  notificaciones  Notificacion[]
 }
 
 model EquipoGPS {
